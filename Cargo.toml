@@ -1,0 +1,23 @@
+[package]
+name = "cybuild-godot"
+version = "0.1.0"
+edition = "2024"
+autoexamples = false
+authors = ["NoFun <nofuncoding@qq.com>"]
+
+[dependencies]
+anyhow = "1.0.100"
+godot = "0.4.4"
+clap = { version = "4.5.53", features = ["derive"], optional = true }
+zip = { version = "6.0.0", optional = true }
+zip-extensions = { version = "0.13.0", optional = true }
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+pack = ["zip", "zip-extensions", "clap"]
+
+[[bin]]
+name = "pack_addon"
+required-features = ["pack"]

@@ -1,0 +1,109 @@
+use anyhow;
+use std::collections::HashMap;
+use std::env;
+use std::fmt::format;
+use std::fs;
+use std::path::PathBuf;
+
+const PROJECT_NAME: &str = "cybuild_godot";
+const ALL_TARGETS: usize = 2;
+
+fn main() {
+    let current_path = env::current_dir().unwrap();
+    let target_path = current_path.join("target");
+    let pack_path = current_path.join("pack");
+
+    if !target_path.is_dir() {
+        panic!("Not in project directory or haven't yet built");
+    }
+
+    println!("Checking build artifacts");
+    let artifacts = check_artifacts(&target_path).expect("Failed to check artifacts");
+    println!("Found {} artifacts", artifacts.len());
+    if artifacts.len() < ALL_TARGETS {
+        println!("  WARN: Not all targets were built, will only pack built targets.");
+    }
+
+    println!("Creating folder architecture");
+    if !pack_path.is_dir() {
+        fs::create_dir(&pack_path).unwrap();
+    }
+
+    let platforms = ["windows", "linux"];
+
+    for folder in platforms {
+        let path = pack_path.join(folder);
+        if !path.is_dir() {
+            println!("Creating {:?}", path);
+            fs::create_dir(&path).unwrap();
+        }
+    }
+
+    println!("Copying artifacts");
+
+    for (target, path) in artifacts {
+        let mut copy_path = target_path.clone();
+        let mut ok = false;
+        for p in platforms {
+            if target.contains(p) {
+                copy_path.push(p);
+                ok = true;
+                break;
+            }
+        }
+
+        if !ok {
+            panic!("Unknown target type: {}", target);
+        }
+
+        let i = &glob::glob(
+            PathBuf::new()
+                .join(&path)
+                .join("**")
+                .join(format!("*{}*", PROJECT_NAME))
+                .to_str()
+                .unwrap(),
+        )
+        .expect("Failed to read glob pattern")
+        .filter(|x| {
+            x.as_ref().is_ok_and(|x| {
+                x.file_name().is_some_and(|x| {
+                    x.to_str().is_some_and(|x| {
+                        x.starts_with("lib")
+                            || x.ends_with("so")
+                            || x.ends_with("cdylib")
+                            || x.ends_with("dll")
+                    })
+                })
+            })
+        })
+        .map(|x| x.unwrap())
+        .collect::<Vec<PathBuf>>()[0]; // what?
+            //.unwrap();
+
+        println!("Copying {:?} to {:?}", i, copy_path);
+        fs::copy(&i, copy_path.join(i.file_name().unwrap())).unwrap();
+    }
+
+    // TODO: Add implementation to copy artifacts to pack directory
+    // This would typically involve copying the built binaries to the pack folder
+}
+
+fn check_artifacts(target_path: &PathBuf) -> anyhow::Result<HashMap<String, String>> {
+    let target_map = ["x86_64-pc-windows-msvc", "x86_64-unknown-linux-gnu"];
+    let mut result = HashMap::new();
+
+    for entry in target_path.read_dir()? {
+        let entry = entry?;
+        let path = entry.path();
+        let name = path.file_name().unwrap().to_str().unwrap().to_string();
+
+        if !path.is_dir() || !target_map.contains(&name.as_str()) {
+            continue;
+        }
+
+        result.insert(name, path.to_str().unwrap().to_string());
+    }
+
+    Ok(result)
+}

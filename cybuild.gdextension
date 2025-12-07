@@ -1,0 +1,13 @@
+[configuration]
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = 4.2
+
+[libraries]
+linux.debug.x86_64 =     "res://addons/{project_name}/lib/linux/lib{project_name}.so"
+linux.release.x86_64 =   "res://addons/{project_name}/lib/linux/lib{project_name}.so"
+windows.debug.x86_64 =   "res://addons/{project_name}/lib/windows/{project_name}.dll"
+windows.release.x86_64 = "res://addons/{project_name}/lib/windows/{project_name}.dll"
+macos.debug =            "res://addons/{project_name}/lib/macos/lib{project_name}.dylib"
+macos.release =          "res://addons/{project_name}/lib/macos/lib{project_name}.dylib"
+macos.debug.arm64 =      "res://addons/{project_name}/lib/macos_arm64/lib{project_name}.dylib"
+macos.release.arm64 =    "res://addons/{project_name}/lib/macos_arm64/lib{project_name}.dylib"
