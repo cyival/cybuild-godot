@@ -20,9 +20,10 @@ config/features=PackedStringArray("4.6")
 
 [cybuild]
 
+outdir="res://packs"
+project_target_name="loader"
 path=""
-targets=PackedStringArray()
-output=""
+dependencies_only=true
 
 [dotnet]
 
@@ -30,4 +31,4 @@ project/assembly_name="UnnamedProject"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/cybuild-godot/plugin.cfg")
+enabled=PackedStringArray()

@@ -6,8 +6,8 @@ autoexamples = false
 authors = ["NoFun <nofuncoding@qq.com>"]
 
 [dependencies]
-anyhow = "1.0.100"
-godot = "0.4.4"
+anyhow = "1.0"
+godot = "0.4.5"
 clap = { version = "4.5.53", features = ["derive"], optional = true }
 zip = { version = "6.0.0", optional = true }
 zip-extensions = { version = "0.13.0", optional = true }
