@@ -20,10 +20,11 @@ config/features=PackedStringArray("4.6")
 
 [cybuild]
 
-outdir="res://packs"
+outdir="res://"
 project_target_name="loader"
-path=""
+path="."
 dependencies_only=true
+executable_path="/home/nofun/Projects/cybuild-dev/Cyival.Build.Cli/bin/Debug/net9.0/Cyival.Build.Cli"
 
 [dotnet]
 

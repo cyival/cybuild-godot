@@ -1,3 +1,5 @@
+use std::path::Path;
+
 pub(crate) use godot::prelude::*;
 use godot::{
     classes::{EditorPlugin, IEditorPlugin, ProjectSettings},
@@ -26,7 +28,18 @@ struct CybuildEditorPlugin {
 #[godot_api]
 impl IEditorPlugin for CybuildEditorPlugin {
     fn enter_tree(&mut self) {
-        self.enabled = env_detect::check_if_installed();
+        let path = ProjectSettings::singleton()
+            .get_setting_ex("cybuild/executable_path")
+            .default_value(&GString::from("cybuild").to_variant())
+            .done()
+            .to_string();
+
+        if path.is_empty() {
+            self.enabled = env_detect::check_if_installed(Path::new("cybuild"));
+        } else {
+            self.enabled = env_detect::check_if_installed(Path::new(&path));
+        }
+
         Self::init_settings();
 
         if Self::get_project_target_name().is_empty() {
@@ -49,10 +62,34 @@ impl IEditorPlugin for CybuildEditorPlugin {
         let mut cli = CliWrapper::new();
         let target_name = Self::get_project_target_name();
         let output_dir = Self::get_setting_as_string("cybuild/outdir");
+        let exe_path = Self::get_setting_as_string("cybuild/executable_path");
+        let dep_only = ProjectSettings::singleton()
+            .get_setting("cybuild/dependencies_only")
+            .booleanize();
+        let manifest_path = Self::get_setting_as_string("cybuild/path");
 
-        cli.output(&output_dir)
-            .build_target(target_name.as_str())
-            .unwrap_or(false)
+        if !exe_path.is_empty() {
+            cli.executable(exe_path);
+        }
+
+        // Make sure it's globalized because cybuild can't process path like `res://`
+        cli.output(
+            ProjectSettings::singleton()
+                .globalize_path(&output_dir)
+                .to_string(),
+        )
+        .manifest(
+            ProjectSettings::singleton()
+                .globalize_path(&manifest_path)
+                .to_string(),
+        );
+
+        if dep_only {
+            cli.build_dependencies(target_name.as_str())
+                .unwrap_or(false)
+        } else {
+            cli.build_target(target_name.as_str()).unwrap_or(false)
+        }
     }
 }
 
@@ -68,11 +105,12 @@ impl CybuildEditorPlugin {
             }
         }
 
-        set_default(&mut ps, "cybuild/path", GString::from(""));
+        set_default(&mut ps, "cybuild/path", GString::new());
         set_default(&mut ps, "cybuild/outdir", GString::from("res://artifacts"));
-        set_default(&mut ps, "cybuild/project_target_name", GString::from(""));
+        set_default(&mut ps, "cybuild/project_target_name", GString::new());
         // TODO: This setting is not yet implemented in both plugin & program.
         set_default(&mut ps, "cybuild/dependencies_only", true);
+        set_default(&mut ps, "cybuild/executable_path", GString::new());
 
         // Add property info for settings (tooltips not supported by Godot yet)
         ps.add_property_info(&vdict! {
@@ -96,6 +134,12 @@ impl CybuildEditorPlugin {
         ps.add_property_info(&vdict! {
             "name": "cybuild/dependencies_only",
             "type": VariantType::BOOL,
+            "hint": PropertyHint::NONE,
+            "hint_string": "",
+        });
+        ps.add_property_info(&vdict! {
+            "name": "cybuild/executable_path",
+            "type": VariantType::STRING,
             "hint": PropertyHint::NONE,
             "hint_string": "",
         });

@@ -43,7 +43,7 @@ impl CliWrapper {
 
     /// Builds the default target.
     pub fn build_default(&self) -> Result<bool> {
-        self.build_target("default")
+        self.build_target("")
     }
 
     /// Builds all targets.
@@ -55,11 +55,13 @@ impl CliWrapper {
     pub fn build_target(&self, target: &str) -> Result<bool> {
         let mut cybuild = self.prepare_command();
 
+        cybuild.arg("build");
+
         if let Some(manifest) = &self.manifest_path {
             cybuild.arg(manifest);
         }
         if let Some(output) = &self.output_path {
-            cybuild.arg("-t").arg(output);
+            cybuild.arg("-o").arg(output);
         }
 
         cybuild.arg("-t").arg(target);
@@ -72,11 +74,13 @@ impl CliWrapper {
     pub fn build_dependencies(&self, target: &str) -> Result<bool> {
         let mut cybuild = self.prepare_command();
 
+        cybuild.arg("build");
+
         if let Some(manifest) = &self.manifest_path {
             cybuild.arg(manifest);
         }
         if let Some(output) = &self.output_path {
-            cybuild.arg("-t").arg(output);
+            cybuild.arg("-o").arg(output);
         }
 
         cybuild.arg("-t").arg(target);

@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use godot::global::{godot_print, godot_print_rich, godot_warn};
 
 /// Checks if the `cybuild` CLI tool is installed and accessible in the system's PATH.
@@ -5,11 +7,8 @@ use godot::global::{godot_print, godot_print_rich, godot_warn};
 ///
 /// # Returns
 /// `true` if `cybuild` is installed, `false` otherwise.
-pub fn check_if_installed() -> bool {
-    match std::process::Command::new("cybuild")
-        .arg("--version")
-        .output()
-    {
+pub fn check_if_installed(path: &Path) -> bool {
+    match std::process::Command::new(path).arg("--version").output() {
         Ok(output) if output.status.success() => {
             let version =
                 String::from_utf8(output.stdout).unwrap_or_else(|_| "UNKNOWN".to_string());
