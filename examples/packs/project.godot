@@ -24,7 +24,7 @@ outdir="res://"
 project_target_name="loader"
 path="."
 dependencies_only=true
-executable_path="/home/nofun/Projects/cybuild-dev/Cyival.Build.Cli/bin/Debug/net9.0/Cyival.Build.Cli"
+executable_path=""
 
 [dotnet]
 
